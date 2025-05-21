@@ -51,6 +51,46 @@ class AuthController extends Controller
         ], 201);
     }
 
+    public function registerSeller(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+                'nama' => 'nullable|string|max:255',
+                'email' => 'required|email|unique:pengguna',
+                'password' => 'required|confirmed|min:6',
+                'telepon' => 'nullable|string|max:15',
+                'alamat' => 'nullable|string',
+                'bank' => 'nullable|string|max:50',
+                'no_rekening' => 'nullable|string|max:30',
+                'foto' => 'nullable|string',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Input tidak valid',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        $pengguna = PenggunaModel::create([
+            'nama' => $validatedData['nama'] ?? null,
+            'email' => $validatedData['email'],
+            'password' => Hash::make($validatedData['password']),
+            'telepon' => $validatedData['telepon'] ?? null,
+            'alamat' => $validatedData['alamat'] ?? null,
+            'bank' => $validatedData['bank'] ?? null,
+            'no_rekening' => $validatedData['no_rekening'] ?? null,
+            'role' => 'penjual',
+            'foto' => $validatedData['foto'] ?? null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Registrasi berhasil',
+            'data' => new \App\Http\Resources\PenggunaResource($pengguna), 
+        ], 201);
+    }
+
     public function login(Request $request)
     {
         try {
