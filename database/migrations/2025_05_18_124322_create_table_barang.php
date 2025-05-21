@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('kondisi', ['bekas', 'baru']);
             $table->string('id_kategori', 15);
             $table->enum('status', ['belum disetujui', 'disetujui', 'ditolak']);
-            $table->string('foto', 255);
+            $table->string('foto', 255)->nullable();
             $table->unsignedBigInteger('id_penjual');
             $table->timestamps(); 
             
