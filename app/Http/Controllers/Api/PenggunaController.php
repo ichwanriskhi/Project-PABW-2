@@ -63,7 +63,7 @@ class PenggunaController extends Controller
                 'alamat' => 'nullable|string',
                 'bank' => 'nullable|string|max:50',
                 'no_rekening' => 'nullable|string|max:30',
-                'role' => 'required|in:admin,user',
+                'role' => 'required|in:petugas',
                 'foto' => 'nullable|string',
             ]);
         } catch (ValidationException $e) {
@@ -143,7 +143,7 @@ class PenggunaController extends Controller
                 'alamat' => 'nullable|string',
                 'bank' => 'nullable|string|max:50',
                 'no_rekening' => 'nullable|string|max:30',
-                'role' => 'nullable|in:admin,user',
+                'role' => 'nullable|in:petugas',
                 'foto' => 'nullable|string',
             ]);
         } catch (ValidationException $e) {
