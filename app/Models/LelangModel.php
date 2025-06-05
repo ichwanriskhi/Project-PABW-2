@@ -37,4 +37,9 @@ class LelangModel extends Model
     {
         return $this->belongsTo(PenggunaModel::class, 'id_petugas', 'id');
     }
+
+    public function penawaran()
+{
+    return $this->hasMany(PenawaranModel::class, 'id_lelang', 'id_lelang');
+}
 }

@@ -1,0 +1,138 @@
+/* CSS untuk profil */
+/* Global Styles */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  
+  /* Wrapper untuk memastikan seluruh card berada di tengah */
+  .wrapper {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* Card Styles */
+  .card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 1000px;
+    height: 400px;
+  }
+  
+  /* Header Section */
+  .profile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Pastikan tombol edit ada di sisi kanan */
+  
+  }
+  
+  .profile-picture img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 20px;
+  }
+  
+  .profile-info h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
+  }
+  
+  .profile-container {
+    display: flex;
+    flex-direction: column; /* Menyusun card secara vertikal */
+    gap: 20px; /* Jarak antar card */
+  }
+  
+  .profile-info p {
+    margin: 5px 0;
+    color: #666;
+  }
+  
+  .edit-button button {
+    margin-left: auto;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .edit-button button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Section Styles */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .section-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+  }
+  
+  .edit-icon {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  
+  .edit-icon:hover {
+    background-color: #0056b3;
+  }
+  
+  .section-content .info-item {
+    margin-bottom: 15px;
+  }
+  
+  .info-item label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: block;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .info-item p {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .section-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr; /* 1 bagian untuk label, 2 bagian untuk nilai */
+    gap: 10px 20px; /* Jarak antar baris dan kolom */
+  }
+  
+  .card {
+    transition: all 0.3s ease; /* Menambahkan transisi untuk perubahan */
+  }
+  
+  .card:hover {
+    box-shadow: 0 8px 16px rgba(0, 123, 255, 0.4); /* Shadow berwarna biru */
+    transform: translateY(-5px); /* Memberikan efek sedikit naik */
+  }

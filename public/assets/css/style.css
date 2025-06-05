@@ -1,0 +1,770 @@
+body {
+    font-family: 'Inter', sans-serif;
+    color: black;
+}
+
+#hero {
+    padding: 5rem;
+}
+
+a {
+  text-decoration: none;
+}
+
+.landing .nav-link{
+    color: #2E3A8A;
+    justify-content: space-between;
+    padding: 0 5px;
+    text-decoration: none; 
+    border-bottom: 2.5px solid transparent; 
+    transition: border-color 0.3s; 
+}
+
+.landing .nav-link:hover{
+    color: #4154F1;
+    border-bottom: 2px solid #4154F1;
+}
+
+.landing .nav-link.active {
+    color: #4154F1;
+    border-bottom: 2px solid #4154F1; /* Keep underline when active */
+}
+
+#hero {
+    background-color: #4154F1;
+    color: white;
+}
+
+#btn-regist{
+    background-color: #2E3A8A;
+}
+
+#btn-regist:hover{
+    background-color: white;
+    color: #2E3A8A;
+}
+
+.landing .why{
+  margin-bottom: 10rem;
+}
+
+.landing .cardl:hover {
+  max-height: 300px; /* Tinggi kartu saat di-hover */
+  padding: 40px; /* Penyesuaian padding untuk tampilan lebih baik */
+  transition: max-height 1s ease-in, padding 0.3s ease-in;
+}
+
+/* Hide card detail by default */
+.landing .cardl-detail {
+    display: none;
+    position: relative; /* Tetap dalam konteks induk */
+    font-size: 1rem;
+    margin-top: 10px;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out; /* Smooth transition effect */
+}
+
+/* Show card detail when hovering over the card */
+
+
+.landing .cardl:hover .cardl-detail {
+    display: block;
+    opacity: 1; 
+    transition: 1500ms ease-in;
+}
+
+/* Optional: Keep card title visible even when hovering */
+.landing .cardl-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    transition: opacity 2s ease; /* Smooth transition effect */
+}
+
+.landing .detail-img {
+  display: block;
+  position: absolute;
+  top: 0; /* Dimulai dari atas */
+  left: -80px; /* Dimulai dari kiri */
+  opacity: 0.1;
+  width: 200px; /* Sesuaikan lebar gambar */
+}
+
+/* Card hover effect */
+.landing .cardl {
+    border: 1px solid #4154f1;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    background-color: #ffffff;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden; /* Mencegah konten di luar elemen terlihat */
+    transition: max-height 1s ease-in, padding 0.3s ease-in;
+    max-height: 150px; /* Tinggi awal kartu saat tidak di-hover */
+}
+
+/* Specific card styles */
+#card-side {
+  position: relative; /* Pastikan elemen memiliki posisi relatif */
+  overflow: hidden; /* Potong bagian yang keluar */
+  background-color: white; /* Warna latar belakang kartu */
+}
+
+/* Optional hover effect */
+.card-land .cardl:hover {
+  box-shadow: 0 8px 16px rgba(65, 84, 241, 1);
+  transition: 1500ms ease;
+}
+
+.foot-land{
+  background-color: #4154f1;
+  color: white;
+}
+
+.login-user {
+  margin: 0; /* Hilangkan margin default */
+  height: 100vh; /* Sesuaikan tinggi dengan viewport */
+  background: linear-gradient(to right, white 50%, #f8f9fa 50%);
+}
+
+.login-user .carousel-inner img {
+  max-width: 500px; 
+}
+
+.search-icon {
+  position: absolute;
+  padding: 7px 20px;
+  right: 0; /* Jarak ikon dari sisi kanan */
+  color: white;
+  cursor: pointer;
+  background: linear-gradient(to right, #4154f1, #25308b);
+  border-radius: 5px;
+  z-index: 30;
+}
+
+.dash-user .main-content {
+  margin-left: calc(230px + 10px); /* Margin left sesuai lebar sidebar utama */
+  transition: margin 0.3s ease; /* Animasi jika ukuran sidebar berubah */
+}
+
+@media (max-width: 1200px) {
+  .dash-user .main-content {
+    margin-left: 0;
+  }
+}
+
+.filter-trigger {
+  /* position: absolute;
+  padding: 7px 20px;
+  right: 50px; /* Jarak ikon dari sisi kanan */
+  /* color: white;
+  cursor: pointer;
+  background: linear-gradient(to right, #4154f1, #25308b);
+  border-radius: 5px;  */
+  z-index: 30;
+}
+
+.filter-sidebar {
+  transition: visibility 0.3s ease, opacity 0.3s ease; /* Transisi untuk visibilitas */
+  opacity: 0; /* Mulai dengan sidebar tersembunyi */
+}
+
+.filter-sidebar.visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+.category {
+  display: flex;
+  flex-wrap: no-wrap; /* Mengizinkan elemen untuk berpindah baris */
+  gap: 8px; /* Jarak antar elemen */
+  justify-content: space-between;
+}
+
+.category .type1, .type2 {
+  font-weight: medium;
+  padding: 8px; /* Padding lebih kecil */
+  background: linear-gradient(to right, #4154f1, #25308b);
+  width: 10rem; /* Lebar lebih kecil */
+  text-align: center;
+  border-radius: 5px;
+  white-space: nowrap; /* Mencegah teks membungkus */
+  overflow: hidden; /* Sembunyikan teks berlebih */
+  text-overflow: ellipsis; /* Tambahkan titik tiga jika teks terlalu panjang */
+  font-size: 0.875rem; /* Ukuran font lebih kecil */
+}
+
+.category .type1 {
+  background: linear-gradient(to right, #4154f1, #25308b);
+}
+
+.category .type1 a {
+  color: white;
+  text-decoration: none;
+  display: block;
+}
+
+.category .type2 {
+  background: linear-gradient(to right, #fec400, #ffd700);
+}
+
+.category .type2 a {
+  color: black;
+  text-decoration: none;
+  display: block;
+}
+
+.product-card {
+  display: flex;
+  flex-wrap: wrap; /* Supaya responsif */
+  gap: 15px; /* Jarak antar card */
+  justify-content: flex-start;
+}
+
+.product-card .card {
+  width: 180px; /* Lebar card diperkecil */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden; /* Mencegah elemen di luar card terlihat */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Memberikan bayangan */
+}
+
+.product-card .card img {
+  height: 150px; /* Tinggi seragam */
+  object-fit: cover; /* Gambar dipotong agar sesuai container */
+  width: 100%;
+}
+
+
+/* Gallery Produk */
+.gallery .main-gall {
+    border-radius: 5px;
+    height: 420px; /* Tinggi seragam */
+    width: 500px;
+    object-fit: cover; /* Gambar dipotong agar sesuai container */
+}
+
+.thumbnail {
+  margin-right: 0.25rem;
+}
+
+.thumbnail .thumb{
+    border-radius: 5px;
+    height: 80px; /* Tinggi seragam */
+    object-fit: cover; /* Gambar dipotong agar sesuai container */
+    width: 80px;
+}
+
+.product-card .card-body {
+  padding: 10px;
+}
+
+.product-card .card-title {
+  font-size: 1rem; /* Ukuran font title diperkecil */
+  margin-bottom: 5px;
+}
+
+.product-card .card-text {
+  font-size: 0.9rem; /* Ukuran font teks deskripsi */
+  color: #666;
+}
+
+.product-card .card .btn {
+  font-size: 0.875rem; /* Ukuran font tombol */
+  padding: 5px 10px;
+  border-color: none;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.pagination a {
+  text-decoration: none;
+  color: #4154f1;
+  padding: 5px 15px;
+  background-color: transparent;
+  border: none;
+}
+
+.pagination .page-link:hover {
+  background-color: #4154f1;
+  color: white !important; 
+}
+
+.pagination .page-icon{
+  margin-top: 5px;
+}
+
+.tab-button .nav-link.active {
+  background-color: #4154f1 !important; /* Warna biru untuk tombol aktif */
+  color: white !important; /* Teks putih untuk tombol aktif */
+  border-radius: 5px; /* Opsional: tambahkan border-radius untuk tampilan lebih halus */
+}
+
+.tab-button .nav-link {
+  color: #000; /* Warna teks default */
+  text-decoration: none; /* Hapus garis bawah default */
+  transition: all 0.3s ease; /* Transisi untuk efek halus */
+}
+
+.tab-button .nav-link:hover {
+  color: #4154f1; /* Warna biru untuk teks saat hover */
+}
+
+.star {
+  color: gold;
+}
+
+.profile-picture img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Lupa Pass */
+
+.lupapass {
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background-color: #f9f9f9;
+}
+
+.lupa .logo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.lupa .logo img {
+  height: 50px;
+}
+
+.lupa h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.lupa p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.lupaform input[type="text"], .lupabutton {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+.lupaform .lupabutton {
+  background-color: #2b4eff;
+  color: white;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.lupaform .lupabutton:hover {
+  background-color: #1a3ecf;
+}
+
+.lupapass .footer-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.lupapass .footer-links a {
+  text-decoration: none;
+  color: #2b4eff;
+}
+
+.lupapass .footer-links a:hover {
+  text-decoration: underline;
+}
+
+/* Lupa pass 1 */
+
+.lupapass1 {
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.lupa1 .container {
+  text-align: left;
+  padding: 30px;
+  border-radius: 10px;
+  width: 350px;
+}
+
+.lupa1 .logo-section {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.lupa1 .logo {
+  height: 50px;
+  margin-right: 10px;
+}
+
+.lupa1 .brand-name {
+  font-size: 24px;
+  font-weight: bold;
+  color: #3366ff;
+  margin: 0;
+}
+
+.lupa1 h2 {
+  font-size: 18px;
+  color: #333;
+  margin: 20px 0 10px;
+}
+
+.lupa1 p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.lupa1 .otp-inputs {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.lupa1 .otp-inputs input {
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  font-size: 18px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.lupa1 .otp-inputs input:focus {
+  border-color: #3366ff;
+}
+
+.lupa1 button {
+  display: block;
+  margin: 0 auto;
+  background-color: #3366ff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 135px;
+  font-size: 16px;
+  cursor: pointer;
+
+}
+
+.lupa1 button:hover {
+  background-color: #2554cc;
+}
+
+/* Lupa pass 2 */
+
+.lupapass2 {
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background-color: #f9f9f9;
+}
+
+.lupapass2 .verification-container {
+  background-color: #fff;
+  padding: 20px;
+  width: 300px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.verification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.verification-header p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.verification-actions i {
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.lupapass2 .img-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.lupapass2 .img-section img {
+  width: 300px;  
+  height: 200px; 
+  object-fit: cover; 
+  border-radius: 5px; 
+}
+
+/* Bantuan */
+
+.accordion-item { /* Bayangan lembut */
+  border-radius: 8px !important; /* Opsional: membuat sudut sedikit melengkung */
+  transition: box-shadow 0.3s ease-in-out !important; /* Transisi untuk efek interaktif */
+}
+
+.accordion .accordion-item .active {
+  box-shadow: 5px 5px 8px rgba(65, 84, 241, 0.3) !important; /* Efek bayangan lebih dalam saat hover */
+}
+
+/* foto upload */
+
+.photo-upload {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-start;
+  border-radius: 5px;
+  padding: 10px;
+  min-height: 150px;
+  position: relative;
+}
+
+.photo-upload img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 5px;
+  border: 1px solid #ced4da;
+}
+
+.photo-upload .upload-label {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border: 2px dashed #ced4da;
+  border-radius: 5px;
+  cursor: pointer;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* tab */
+
+.tabs {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.chat-container {
+  overflow-y: scroll;
+  max-height: calc(100vh - 130px); /* Reduced space from the top */
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+/* Sent message */
+.message.sent {
+  justify-content: flex-end;
+}
+
+/* Message bubbles */
+.bubble {
+  max-width: 60%;
+  padding: 10px 15px;
+  border-radius: 15px;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* Received messages */
+.message.received .bubble {
+  background-color: #f1f1f1;
+  color: #333;
+  align-self: flex-start;
+}
+
+/* Sent messages */
+.message.sent .bubble {
+  background-color: #0078ff;
+  color: white;
+  align-self: flex-end;
+}
+
+/* Date for message */
+.message-date {
+  font-size: 12px;
+  color: #888;
+  margin-top: 5px;
+  text-align: right;
+}
+
+/* Input area */
+.input-container {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #f1f1f1;
+  border-top: 1px solid #ddd;
+}
+
+.input-container input {
+  flex-grow: 1;
+  padding: 10px;
+  border-radius: 20px;
+  border: none;
+  font-size: 14px;
+  background-color: white;
+  margin-right: 10px;
+}
+
+.input-container button {
+  background-color: #0078ff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* Icons container */
+.input-icons {
+  display: flex;
+  align-items: center;
+  margin-right: 10px; /* Space between icons and the input field */
+}
+
+/* Style for each icon */
+.input-icons i {
+  font-size: 18px;
+  color: #0078ff;
+  margin-right: 10px; /* Space between icons */
+  cursor: pointer;
+}
+
+/* Header styles */
+.chat-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px; /* Reduced space from top */
+}
+
+.chat-header img {
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+}
+
+.chat-header .ms-3 {
+  margin-left: 15px;
+}
+
+.chat-header p {
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Adjust the main content container */
+.container-fluid {
+  padding-top: 0; /* Remove extra padding */
+}
+
+/* Styling for icons in input */
+.input-icons {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.profile-img {
+  margin-right: 10px; /* Adding margin to create space between image and message */
+}
+
+/* Style for message bubbles */
+.message .bubble {
+  max-width: 60%;
+  padding: 10px 15px;
+  border-radius: 15px;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* Style for timestamp under the message */
+.timestamp {
+  font-size: 12px;
+  color: #aaa; /* Light gray color */
+  margin-top: 5px; /* Space between message and timestamp */
+  text-align: right;
+}
+
+/* Bintang */
+.fa-star, .fa-star-half {
+  color: gold; /* Warna emas untuk ikon bintang */
+}
+
+/* Bantuan Rev */
+
+.accordion-button {
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: white; /* Ganti warna biru menjadi putih */
+  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); Tambahkan bayangan */
+  border-radius: 5px; /* Opsional: sudut melengkung */
+  border: none; /* Opsional: hapus border */
+}
+
+.accordion-item:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 255, 0.4); 
+}
+

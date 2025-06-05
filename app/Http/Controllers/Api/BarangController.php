@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BarangCollection;
 use App\Http\Resources\BarangResource;
 use App\Models\BarangModel;
+use App\Models\LelangModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class BarangController extends Controller
 {
@@ -31,7 +33,7 @@ class BarangController extends Controller
         }
 
         $barang = BarangModel::with(['kategori', 'penjual'])->latest()->paginate(10);
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Daftar data barang',
@@ -175,7 +177,7 @@ class BarangController extends Controller
 
         // Cek apakah barang ada
         $barang = BarangModel::find($id);
-        
+
         if (!$barang) {
             return response()->json([
                 'success' => false,
@@ -211,8 +213,12 @@ class BarangController extends Controller
         }
 
         $updateData = $request->only([
-            'nama_barang', 'harga_awal', 'lokasi', 'deskripsi', 
-            'kondisi', 'id_kategori'
+            'nama_barang',
+            'harga_awal',
+            'lokasi',
+            'deskripsi',
+            'kondisi',
+            'id_kategori'
         ]);
 
         // Handle upload foto baru
@@ -221,7 +227,7 @@ class BarangController extends Controller
             if ($barang->foto && Storage::disk('public')->exists($barang->foto)) {
                 Storage::disk('public')->delete($barang->foto);
             }
-            
+
             $foto = $request->file('foto');
             $filename = time() . '_' . $foto->getClientOriginalName();
             $fotoPath = $foto->storeAs('barang', $filename, 'public');
@@ -260,7 +266,7 @@ class BarangController extends Controller
 
         // Cek apakah barang ada
         $barang = BarangModel::find($id);
-        
+
         if (!$barang) {
             return response()->json([
                 'success' => false,
@@ -310,7 +316,7 @@ class BarangController extends Controller
         }
 
         $validStatus = ['belum disetujui', 'disetujui', 'ditolak'];
-        
+
         if (!in_array($status, $validStatus)) {
             return response()->json([
                 'success' => false,
@@ -319,9 +325,9 @@ class BarangController extends Controller
         }
 
         $barang = BarangModel::with(['kategori', 'penjual'])
-                            ->where('status', $status)
-                            ->latest()
-                            ->paginate(10);
+            ->where('status', $status)
+            ->latest()
+            ->paginate(10);
 
         return response()->json([
             'success' => true,
@@ -349,10 +355,10 @@ class BarangController extends Controller
         }
 
         $barang = BarangModel::with(['kategori', 'penjual'])
-                            ->where('id_kategori', $id_kategori)
-                            ->where('status', 'disetujui') // Hanya tampilkan barang yang sudah disetujui
-                            ->latest()
-                            ->paginate(10);
+            ->where('id_kategori', $id_kategori)
+            ->where('status', 'disetujui') // Hanya tampilkan barang yang sudah disetujui
+            ->latest()
+            ->paginate(10);
 
         return response()->json([
             'success' => true,
@@ -387,9 +393,9 @@ class BarangController extends Controller
         }
 
         $barang = BarangModel::with(['kategori', 'penjual'])
-                            ->where('id_penjual', $user->id)
-                            ->latest()
-                            ->paginate(10);
+            ->where('id_penjual', $user->id)
+            ->latest()
+            ->paginate(10);
 
         return response()->json([
             'success' => true,
@@ -397,6 +403,62 @@ class BarangController extends Controller
             'data' => new BarangCollection($barang)
         ], 200);
     }
+
+    // /**
+    //  * Memperbarui status barang.
+    //  * Hanya admin dan petugas yang bisa mengakses.
+    //  *
+    //  * @param  \Illuminate\Http\Request  $request
+    //  * @param  string  $id
+    //  * @return \Illuminate\Http\Response
+    //  */
+    // public function updateStatus(Request $request, $id)
+    // {
+    //     // Validasi role - hanya admin dan petugas yang bisa mengakses
+    //     $user = $request->user('api');
+    //     if (!$user || !in_array($user->role, ['admin', 'petugas'])) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Unauthorized - Hanya admin dan petugas yang dapat mengubah status barang'
+    //         ], 403);
+    //     }
+
+    //     // Cek apakah barang ada
+    //     $barang = BarangModel::find($id);
+
+    //     if (!$barang) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Barang tidak ditemukan'
+    //         ], 404);
+    //     }
+
+    //     // Validasi input
+    //     $validator = Validator::make($request->all(), [
+    //         'status' => 'required|in:belum disetujui,disetujui,ditolak'
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Validasi gagal',
+    //             'errors' => $validator->errors()
+    //         ], 422);
+    //     }
+
+    //     // Update status barang
+    //     $barang->update([
+    //         'status' => $request->status
+    //     ]);
+
+    //     $barang->load(['kategori', 'penjual']);
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Status barang berhasil diperbarui',
+    //         'data' => new BarangResource($barang)
+    //     ], 200);
+    // }
 
     /**
      * Memperbarui status barang.
@@ -419,7 +481,7 @@ class BarangController extends Controller
 
         // Cek apakah barang ada
         $barang = BarangModel::find($id);
-        
+
         if (!$barang) {
             return response()->json([
                 'success' => false,
@@ -440,18 +502,65 @@ class BarangController extends Controller
             ], 422);
         }
 
-        // Update status barang
-        $barang->update([
-            'status' => $request->status
-        ]);
+        // Simpan status lama untuk pengecekan
+        $statusLama = $barang->status;
+        $statusBaru = $request->status;
 
-        $barang->load(['kategori', 'penjual']);
+        try {
+            // Mulai database transaction
+            DB::beginTransaction();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Status barang berhasil diperbarui',
-            'data' => new BarangResource($barang)
-        ], 200);
+            // Update status barang
+            $barang->update([
+                'status' => $statusBaru
+            ]);
+
+            // Jika status diubah menjadi "disetujui", buat data lelang otomatis
+            if ($statusBaru === 'disetujui' && $statusLama !== 'disetujui') {
+                // Cek apakah sudah ada lelang untuk barang ini
+                $existingLelang = LelangModel::where('id_barang', $barang->id_barang)->first();
+
+                if (!$existingLelang) {
+                    // Buat data lelang baru menggunakan LelangModel
+                    LelangModel::create([
+                        'id_barang' => $barang->id_barang,
+                        'tgl_dibuka' => now(),
+                        'tgl_selesai' => null,
+                        'harga_akhir' => 0,
+                        'id_pembeli' => null,
+                        'id_user' => null,
+                        'status_dana' => 'belum diserahkan',
+                        'id_petugas' => $user->id, // ID petugas yang menyetujui
+                        'status' => 'dibuka'
+                    ]);
+                }
+            }
+
+            // Commit transaction
+            DB::commit();
+
+            $barang->load(['kategori', 'penjual']);
+
+            $message = 'Status barang berhasil diperbarui';
+            if ($statusBaru === 'disetujui' && $statusLama !== 'disetujui') {
+                $message .= ' dan lelang telah dibuat otomatis';
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'data' => new BarangResource($barang)
+            ], 200);
+        } catch (\Exception $e) {
+            // Rollback transaction jika ada error
+            DB::rollback();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui status barang',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -464,9 +573,9 @@ class BarangController extends Controller
     public function getApprovedBarang(Request $request)
     {
         $barang = BarangModel::with(['kategori', 'penjual'])
-                            ->where('status', 'disetujui')
-                            ->latest()
-                            ->paginate(10);
+            ->where('status', 'disetujui')
+            ->latest()
+            ->paginate(10);
 
         return response()->json([
             'success' => true,

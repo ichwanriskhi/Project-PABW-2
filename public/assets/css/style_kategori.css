@@ -1,0 +1,77 @@
+/* /tampilan kategori/ */
+.category-container {
+  display: flex;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  color: #333;
+  margin: 15px;
+}
+
+.category-container .icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+}
+
+.category-container .icon svg {
+  fill: #333; /* Warna ikon */
+}
+
+.category-container .text {
+  font-weight: normal;
+}
+
+.category .type3 {
+  background: linear-gradient(to right, #4154f1);
+}
+
+.category .type3, .type4 {
+  font-weight: medium;
+  padding: 8px; /* Padding lebih kecil */
+  background: #9aa3f7;
+  width: 10rem; /* Lebar lebih kecil */
+  text-align: center;
+  border-radius: 5px;
+  white-space: nowrap; /* Mencegah teks membungkus */
+  overflow: hidden; /* Sembunyikan teks berlebih */
+  text-overflow: ellipsis; /* Tambahkan titik tiga jika teks terlalu panjang */
+  font-size: 0.875rem; /* Ukuran font lebih kecil */
+}
+
+/* Container kategori dan urutan */
+.category-container {
+  display: flex;
+  flex-direction: column; /* Pastikan vertikal */
+  align-items: flex-start; /* Letakkan di kiri */
+  gap: 10px; /* Jarak antara kategori dan urutan */
+  margin-bottom: 20px; /* Jarak bawah dengan elemen lain */
+}
+
+/* Elemen kategori */
+.category {
+  display: flex;
+  align-items: center; /* Rata tengah antara ikon dan teks */
+}
+
+/* Elemen urutan */
+.sort-dropdown {
+  display: flex;
+  align-items: center; /* Rata tengah antara teks dan dropdown */
+}
+
+.sort-dropdown .text {
+  margin-right: 8px; /* Jarak antara teks "Urutan" dan dropdown */
+}
+
+.sort-dropdown button {
+  min-width: 100px; /* Lebar minimal dropdown */
+}
+
+/* Produk tetap responsif */
+.product-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
