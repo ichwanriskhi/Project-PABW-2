@@ -1,0 +1,94 @@
+/*css profil */
+.profile-picture {
+    position: absolute;
+    top: 150px; /* Sesuaikan jarak dari atas */
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .profile-picture img {
+    width: 120px;
+    height: 500px;
+    object-fit: cover;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+     /* Efek timbul */
+     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3), 
+     0 4px 6px rgba(0, 0, 0, 0.2);
+     transition: box-shadow 0.3s ease;
+  }  
+  
+ 
+  .edit-icon {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 30px;
+    height: 30px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .edit-icon:hover {
+    background-color: #0056b3;
+  }
+  
+  .edit-icon i {
+    font-size: 14px;
+  }
+  
+  .container {
+    display: flex;
+    justify-content: flex-end; /* Memindahkan gambar ke kanan */
+    margin-bottom: 10px;
+    height: 150px;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  
+  .icon {
+    position: absolute;
+      bottom: 10px; /* Jarak dari bawah */
+      right: 10px; /* Jarak dari kanan */
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      border-radius: 50%;
+      background-color: white;
+      padding: 5px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .icon:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .min-height-1000 {
+    position: relative; /* Membuat elemen child dengan posisi absolute bekerja */
+    min-height: 100px;
+    background-color: #f8f9fa; /* Warna putih untuk area bawah */
+  }
+  
+  .page-header {
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    min-height: 150px; /* Tinggi untuk area biru */
+  }
+  
+  .btnedit {
+    margin-top: auto;
+    padding: 5px 15px;
+    margin-bottom: 10px;
+    justify-content: left;
+    background-color: #4154f1;
+    width: 120px;
+    height: 40px;
+  }
+
+  

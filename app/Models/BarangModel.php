@@ -28,7 +28,7 @@ class BarangModel extends Model
     }
     public function lelang()
     {
-        return $this->hasMany(LelangModel::class, 'id_barang', 'id_barang');
+        return $this->hasOne(LelangModel::class, 'id_barang', 'id_barang');
     }
     public function penjual()
     {
