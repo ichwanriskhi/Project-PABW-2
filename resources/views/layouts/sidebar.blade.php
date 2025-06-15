@@ -70,13 +70,13 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark" href="{{ route('barang.index') }}">
+                    <a class="nav-link text-dark" href="{{ route('admin.barang.index') }}">
                         <i class="material-symbols-rounded opacity-5">table_view</i>
                         <span class="nav-link-text ms-1">Pengajuan Barang</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark" href="{{ route('kategori.index') }}">
+                    <a class="nav-link text-dark" href="{{ route('admin.kategori.index') }}">
                         <i class="material-symbols-rounded opacity-5">receipt_long</i>
                         <span class="nav-link-text ms-1">Kategori Barang</span>
                     </a>
@@ -170,19 +170,19 @@
                 </li>
                 @elseif ($userRole == 'pembeli')
                 <li class="nav-item">
-                    <a class="nav-link active text-white" href="index.html">
+                    <a class="nav-link active text-white" href="{{ route('pembeli.index') }}">
                         <i class="material-symbols-rounded opacity-5">dashboard</i>
                         <span class="nav-link-text ms-1">Beranda</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark" href="aktivitas.html">
+                    <a class="nav-link text-dark" href="{{ route('pembeli.aktivitas') }}">
                         <i class="material-symbols-rounded opacity-5">table_view</i>
                         <span class="nav-link-text ms-1">Aktivitas</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark" href="bantuan.html">
+                    <a class="nav-link text-dark" href="{{ route('pembeli.bantuan') }}">
                         <i class="material-symbols-rounded opacity-5">help</i>
                         <span class="nav-link-text ms-1">Bantuan</span>
                     </a>

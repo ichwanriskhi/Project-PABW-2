@@ -7,6 +7,7 @@ use App\Http\Resources\BarangCollection;
 use App\Http\Resources\BarangResource;
 use App\Models\BarangModel;
 use App\Models\LelangModel;
+use App\Models\KategoriModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -16,23 +17,140 @@ class BarangController extends Controller
 {
     /**
      * Menampilkan daftar semua barang.
-     * Hanya admin dan petugas yang bisa mengakses.
+     * Admin dan petugas melihat semua barang, penjual hanya melihat barang miliknya.
+     * Pembeli melihat barang yang disetujui dan lelangnya dibuka.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
     {
-        // Validasi role - hanya admin dan petugas yang bisa mengakses
         $user = $request->user('api');
-        if (!$user || !in_array($user->role, ['admin', 'petugas'])) {
+        if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized - Akses ditolak. Hanya admin dan petugas yang dapat melihat semua barang'
-            ], 403);
+                'message' => 'Unauthorized - Anda harus login terlebih dahulu'
+            ], 401);
         }
 
-        $barang = BarangModel::with(['kategori', 'penjual'])->latest()->paginate(10);
+        $perPage = $request->get('per_page', 10);
+        $search = $request->get('search');
+        $status = $request->get('status');
+
+        // Filter tambahan untuk pembeli
+        $kategori_filter = $request->get('kategori');
+        $kondisi_filter = $request->get('kondisi');
+        $lokasi_filter = $request->get('lokasi');
+        $harga_min = $request->get('harga_min');
+        $harga_max = $request->get('harga_max');
+
+        if (in_array($user->role, ['admin', 'petugas'])) {
+            // Admin dan petugas melihat semua barang
+            $query = BarangModel::with(['kategori', 'penjual']);
+
+            // Filter berdasarkan status jika ada
+            if ($status && in_array($status, ['disetujui', 'belum disetujui', 'ditolak'])) {
+                $query->where('status', $status);
+            }
+
+            // Filter berdasarkan pencarian
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama_barang', 'like', '%' . $search . '%')
+                        ->orWhere('lokasi', 'like', '%' . $search . '%')
+                        ->orWhereHas('kategori', function ($subQ) use ($search) {
+                            $subQ->where('nama_kategori', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereHas('penjual', function ($subQ) use ($search) {
+                            $subQ->where('nama', 'like', '%' . $search . '%');
+                        });
+                });
+            }
+        } elseif ($user->role === 'penjual') {
+            // Penjual hanya melihat barang miliknya
+            $query = BarangModel::with(['kategori', 'penjual'])
+                ->where('id_penjual', $user->id);
+
+            // Filter berdasarkan status jika ada
+            if ($status && in_array($status, ['disetujui', 'belum disetujui', 'ditolak'])) {
+                $query->where('status', $status);
+            }
+
+            // Filter berdasarkan pencarian
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama_barang', 'like', '%' . $search . '%')
+                        ->orWhere('lokasi', 'like', '%' . $search . '%')
+                        ->orWhereHas('kategori', function ($subQ) use ($search) {
+                            $subQ->where('nama_kategori', 'like', '%' . $search . '%');
+                        });
+                });
+            }
+        } else {
+            // PEMBELI - Barang yang disetujui dan lelangnya dibuka
+            $query = BarangModel::with(['kategori', 'penjual', 'lelang'])
+                ->where('status', 'disetujui')
+                ->whereHas('lelang', function ($q) {
+                    $q->where('status', 'dibuka');
+                });
+
+            // Filter berdasarkan pencarian
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama_barang', 'like', '%' . $search . '%')
+                        ->orWhere('lokasi', 'like', '%' . $search . '%')
+                        ->orWhere('deskripsi', 'like', '%' . $search . '%')
+                        ->orWhereHas('kategori', function ($subQ) use ($search) {
+                            $subQ->where('nama_kategori', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereHas('penjual', function ($subQ) use ($search) {
+                            $subQ->where('nama', 'like', '%' . $search . '%');
+                        });
+                });
+            }
+
+            // Filter berdasarkan kategori
+            if ($kategori_filter) {
+                $query->where('id_kategori', $kategori_filter);
+            }
+
+            // Filter berdasarkan kondisi
+            if ($kondisi_filter && in_array($kondisi_filter, ['Baru', 'Bekas'])) {
+                $query->where('kondisi', $kondisi_filter);
+            }
+
+            // Filter berdasarkan lokasi
+            if ($lokasi_filter) {
+                $query->where('lokasi', 'like', '%' . $lokasi_filter . '%');
+            }
+
+            // Filter berdasarkan range harga
+            if ($harga_min && is_numeric($harga_min)) {
+                $query->where('harga_awal', '>=', $harga_min);
+            }
+
+            if ($harga_max && is_numeric($harga_max)) {
+                $query->where('harga_awal', '<=', $harga_max);
+            }
+
+            // Untuk pembeli gunakan pagination yang lebih besar
+            $perPage = 21;
+        }
+
+        $barang = $query->latest()->paginate($perPage);
+
+        // Proses foto untuk pembeli (ambil foto pertama saja)
+        if ($user->role === 'pembeli') {
+            $barang->getCollection()->transform(function ($item) {
+                if ($item->foto) {
+                    $photos = explode(',', $item->foto);
+                    $item->foto_utama = $photos[0]; // Ambil foto pertama
+                } else {
+                    $item->foto_utama = null;
+                }
+                return $item;
+            });
+        }
 
         return response()->json([
             'success' => true,
@@ -66,7 +184,7 @@ class BarangController extends Controller
             ], 403);
         }
 
-        // Validasi input
+        // Validasi input - Updated untuk multiple photos
         $validator = Validator::make($request->all(), [
             'nama_barang' => 'required|string|max:255',
             'harga_awal' => 'required|numeric|min:0',
@@ -74,7 +192,9 @@ class BarangController extends Controller
             'deskripsi' => 'required|string',
             'kondisi' => 'required|in:Baru,Bekas',
             'id_kategori' => 'required|string|exists:kategori,id_kategori',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            // Validasi untuk multiple foto (maksimal 5 foto)
+            'foto' => 'nullable|array|max:5',
+            'foto.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         if ($validator->fails()) {
@@ -85,13 +205,18 @@ class BarangController extends Controller
             ], 422);
         }
 
-        // Handle upload foto
-        $fotoPath = null;
+        // Handle upload multiple foto
+        $uploadedPhotos = [];
         if ($request->hasFile('foto')) {
-            $foto = $request->file('foto');
-            $filename = time() . '_' . $foto->getClientOriginalName();
-            $fotoPath = $foto->storeAs('barang', $filename, 'public');
+            foreach ($request->file('foto') as $foto) {
+                $filename = time() . '_' . uniqid() . '_' . $foto->getClientOriginalName();
+                $fotoPath = $foto->storeAs('barang', $filename, 'public');
+                $uploadedPhotos[] = $fotoPath;
+            }
         }
+
+        // Gabungkan nama file menjadi string yang dipisahkan koma
+        $photoNames = !empty($uploadedPhotos) ? implode(',', $uploadedPhotos) : null;
 
         // Membuat barang baru dengan id_penjual dari user yang login
         $barang = BarangModel::create([
@@ -102,7 +227,7 @@ class BarangController extends Controller
             'kondisi' => $request->kondisi,
             'id_kategori' => $request->id_kategori,
             'status' => 'belum disetujui', // Default status
-            'foto' => $fotoPath ?? null,
+            'foto' => $photoNames, // Simpan sebagai string separated by comma
             'id_penjual' => $user->id, // Menggunakan ID user yang login
         ]);
 
@@ -140,6 +265,14 @@ class BarangController extends Controller
                 'success' => false,
                 'message' => 'Barang tidak ditemukan'
             ], 404);
+        }
+
+        // Penjual hanya bisa melihat barang miliknya sendiri (kecuali admin/petugas)
+        if ($user->role === 'penjual' && $barang->id_penjual != $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized - Anda hanya dapat melihat barang milik Anda sendiri'
+            ], 403);
         }
 
         return response()->json([
@@ -193,15 +326,17 @@ class BarangController extends Controller
             ], 403);
         }
 
-        // Validasi input
+        // Validasi input - Updated untuk multiple photos
         $validator = Validator::make($request->all(), [
             'nama_barang' => 'sometimes|required|string|max:255',
             'harga_awal' => 'sometimes|required|numeric|min:0',
             'lokasi' => 'sometimes|required|string|max:255',
             'deskripsi' => 'sometimes|required|string',
-            'kondisi' => 'sometimes|required|in:Baru,Bekas - Sangat Baik,Bekas - Baik,Bekas - Cukup',
-            'id_kategori' => 'sometimes|required|integer|exists:kategori,id_kategori',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'kondisi' => 'sometimes|required|in:Baru,Bekas',
+            'id_kategori' => 'sometimes|required|string|exists:kategori,id_kategori',
+            // Validasi untuk multiple foto (maksimal 5 foto)
+            'foto' => 'nullable|array|max:5',
+            'foto.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         if ($validator->fails()) {
@@ -221,17 +356,29 @@ class BarangController extends Controller
             'id_kategori'
         ]);
 
-        // Handle upload foto baru
+        // Handle upload multiple foto baru
         if ($request->hasFile('foto')) {
             // Hapus foto lama jika ada
-            if ($barang->foto && Storage::disk('public')->exists($barang->foto)) {
-                Storage::disk('public')->delete($barang->foto);
+            if ($barang->foto) {
+                $oldPhotos = explode(',', $barang->foto);
+                foreach ($oldPhotos as $oldPhoto) {
+                    if (Storage::disk('public')->exists($oldPhoto)) {
+                        Storage::disk('public')->delete($oldPhoto);
+                    }
+                }
             }
 
-            $foto = $request->file('foto');
-            $filename = time() . '_' . $foto->getClientOriginalName();
-            $fotoPath = $foto->storeAs('barang', $filename, 'public');
-            $updateData['foto'] = $fotoPath;
+            // Upload foto baru
+            $uploadedPhotos = [];
+            foreach ($request->file('foto') as $foto) {
+                $filename = time() . '_' . uniqid() . '_' . $foto->getClientOriginalName();
+                $fotoPath = $foto->storeAs('barang', $filename, 'public');
+                $uploadedPhotos[] = $fotoPath;
+            }
+
+            // Gabungkan nama file menjadi string yang dipisahkan koma
+            $photoNames = implode(',', $uploadedPhotos);
+            $updateData['foto'] = $photoNames;
         }
 
         // Update barang
@@ -282,9 +429,14 @@ class BarangController extends Controller
             ], 422);
         }
 
-        // Hapus foto jika ada
-        if ($barang->foto && Storage::disk('public')->exists($barang->foto)) {
-            Storage::disk('public')->delete($barang->foto);
+        // Hapus multiple foto jika ada
+        if ($barang->foto) {
+            $photos = explode(',', $barang->foto);
+            foreach ($photos as $photo) {
+                if (Storage::disk('public')->exists($photo)) {
+                    Storage::disk('public')->delete($photo);
+                }
+            }
         }
 
         // Hapus barang
@@ -354,11 +506,49 @@ class BarangController extends Controller
             ], 401);
         }
 
-        $barang = BarangModel::with(['kategori', 'penjual'])
-            ->where('id_kategori', $id_kategori)
-            ->where('status', 'disetujui') // Hanya tampilkan barang yang sudah disetujui
-            ->latest()
-            ->paginate(10);
+        $kategori = KategoriModel::find($id_kategori);
+        if (!$kategori) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kategori tidak ditemukan'
+            ], 404);
+        }
+
+        if (in_array($user->role, ['admin', 'petugas'])) {
+            // Admin dan petugas melihat semua barang dari kategori
+            $barang = BarangModel::with(['kategori', 'penjual'])
+                ->where('id_kategori', $id_kategori)
+                ->latest()
+                ->paginate(10);
+        } elseif ($user->role === 'penjual') {
+            // Penjual hanya melihat barang miliknya sendiri dari kategori
+            $barang = BarangModel::with(['kategori', 'penjual'])
+                ->where('id_kategori', $id_kategori)
+                ->where('id_penjual', $user->id)
+                ->latest()
+                ->paginate(10);
+        } else {
+            // Pembeli hanya melihat barang yang disetujui dan lelangnya dibuka
+            $barang = BarangModel::with(['kategori', 'penjual', 'lelang'])
+                ->where('id_kategori', $id_kategori)
+                ->where('status', 'disetujui')
+                ->whereHas('lelang', function ($q) {
+                    $q->where('status', 'dibuka');
+                })
+                ->latest()
+                ->paginate(10);
+
+            // Proses foto untuk pembeli (ambil foto pertama saja)
+            $barang->getCollection()->transform(function ($item) {
+                if ($item->foto) {
+                    $photos = explode(',', $item->foto);
+                    $item->foto_utama = $photos[0]; // Ambil foto pertama
+                } else {
+                    $item->foto_utama = null;
+                }
+                return $item;
+            });
+        }
 
         return response()->json([
             'success' => true,
@@ -403,62 +593,6 @@ class BarangController extends Controller
             'data' => new BarangCollection($barang)
         ], 200);
     }
-
-    // /**
-    //  * Memperbarui status barang.
-    //  * Hanya admin dan petugas yang bisa mengakses.
-    //  *
-    //  * @param  \Illuminate\Http\Request  $request
-    //  * @param  string  $id
-    //  * @return \Illuminate\Http\Response
-    //  */
-    // public function updateStatus(Request $request, $id)
-    // {
-    //     // Validasi role - hanya admin dan petugas yang bisa mengakses
-    //     $user = $request->user('api');
-    //     if (!$user || !in_array($user->role, ['admin', 'petugas'])) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Unauthorized - Hanya admin dan petugas yang dapat mengubah status barang'
-    //         ], 403);
-    //     }
-
-    //     // Cek apakah barang ada
-    //     $barang = BarangModel::find($id);
-
-    //     if (!$barang) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Barang tidak ditemukan'
-    //         ], 404);
-    //     }
-
-    //     // Validasi input
-    //     $validator = Validator::make($request->all(), [
-    //         'status' => 'required|in:belum disetujui,disetujui,ditolak'
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Validasi gagal',
-    //             'errors' => $validator->errors()
-    //         ], 422);
-    //     }
-
-    //     // Update status barang
-    //     $barang->update([
-    //         'status' => $request->status
-    //     ]);
-
-    //     $barang->load(['kategori', 'penjual']);
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Status barang berhasil diperbarui',
-    //         'data' => new BarangResource($barang)
-    //     ], 200);
-    // }
 
     /**
      * Memperbarui status barang.
@@ -581,6 +715,238 @@ class BarangController extends Controller
             'success' => true,
             'message' => 'Daftar barang yang sudah disetujui',
             'data' => new BarangCollection($barang)
+        ], 200);
+    }
+
+    /**
+     * Menampilkan detail barang untuk pembeli.
+     * Khusus untuk pembeli melihat detail barang yang akan dilelang.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function showDetailForPembeli(Request $request, $id)
+    {
+        $user = $request->user('api');
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized - Anda harus login terlebih dahulu'
+            ], 401);
+        }
+
+        $barang = BarangModel::with(['kategori', 'penjual', 'lelang'])->find($id);
+
+        if (!$barang) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Barang tidak ditemukan'
+            ], 404);
+        }
+
+        // Cek apakah barang disetujui dan lelang dibuka
+        if ($barang->status !== 'disetujui' || !$barang->lelang || $barang->lelang->status !== 'dibuka') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Barang tidak tersedia untuk dilelang'
+            ], 400);
+        }
+
+        // Ambil tawaran tertinggi
+        $tawaranTertinggi = DB::table('penawaran')
+            ->where('id_lelang', $barang->lelang->id_lelang)
+            ->max('penawaran_harga');
+
+        // Format tawaran tertinggi
+        $tawaranTertinggiTampil = $tawaranTertinggi ? "Rp " . number_format($tawaranTertinggi, 0, ',', '.') : "Belum ada tawaran";
+
+        // Cek apakah user sudah pernah menawar
+        $sudahMenawar = DB::table('penawaran')
+            ->where('id_lelang', $barang->lelang->id_lelang)
+            ->where('id_pembeli', $user->id)
+            ->exists();
+
+        // Ambil semua penawaran untuk lelang ini dengan data pembeli
+        $penawaran = DB::table('penawaran')
+            ->join('pengguna', 'penawaran.id_pembeli', '=', 'pengguna.id')
+            ->where('id_lelang', $barang->lelang->id_lelang)
+            ->orderBy('penawaran_harga', 'desc')
+            ->select([
+                'penawaran.id_penawaran',
+                'penawaran.id_pembeli',
+                'pengguna.nama',
+                'pengguna.foto as foto_pembeli',
+                'penawaran.penawaran_harga',
+                'penawaran.waktu',
+                'penawaran.status_tawar'
+            ])
+            ->get();
+
+        // Format lokasi untuk tampilan yang lebih user-friendly
+        $lokasiTampil = match (strtolower(trim($barang->lokasi))) {
+            'bandung' => 'Telkom University Bandung',
+            'surabaya' => 'Telkom University Surabaya',
+            'jakarta' => 'Telkom University Jakarta',
+            default => $barang->lokasi,
+        };
+
+        // Process foto - convert comma-separated string to array
+        $fotoArray = $barang->foto ? explode(',', $barang->foto) : [];
+        $mainImage = count($fotoArray) > 0 ? trim($fotoArray[0]) : 'default-product.png';
+
+        // Prepare response data
+        $responseData = new BarangResource($barang);
+        $responseArray = $responseData->toArray($request);
+
+        // Add additional data for pembeli
+        $responseArray['tawaran_tertinggi'] = $tawaranTertinggiTampil;
+        $responseArray['sudah_menawar'] = $sudahMenawar;
+        $responseArray['lokasi_tampil'] = $lokasiTampil;
+        $responseArray['foto_array'] = array_map('trim', $fotoArray);
+        $responseArray['main_image'] = $mainImage;
+        $responseArray['riwayat_penawaran'] = $penawaran;
+
+        // Add lelang information
+        if ($barang->lelang) {
+            $responseArray['lelang'] = [
+                'id_lelang' => $barang->lelang->id_lelang,
+                'tgl_dibuka' => $barang->lelang->tgl_dibuka,
+                'tgl_selesai' => $barang->lelang->tgl_selesai,
+                'status' => $barang->lelang->status,
+                'harga_akhir' => $barang->lelang->harga_akhir,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Detail barang untuk pembeli',
+            'data' => $responseArray
+        ], 200);
+    }
+
+    /**
+     * Menampilkan barang yang sudah disetujui untuk publik (pembeli).
+     * Endpoint untuk menampilkan barang di marketplace untuk pembeli.
+     * Hanya menampilkan barang yang disetujui dan lelangnya dibuka.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function getApprovedBarangForPembeli(Request $request)
+    {
+        $user = $request->user('api');
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized - Anda harus login terlebih dahulu'
+            ], 401);
+        }
+
+        $search = $request->get('search');
+        $kategori_filter = $request->get('kategori');
+        $kondisi_filter = $request->get('kondisi');
+        $lokasi_filter = $request->get('lokasi');
+        $harga_min = $request->get('harga_min');
+        $harga_max = $request->get('harga_max');
+
+        // Query untuk pembeli - hanya barang yang disetujui dan lelangnya dibuka
+        $query = BarangModel::with(['kategori', 'penjual', 'lelang'])
+            ->where('status', 'disetujui')
+            ->whereHas('lelang', function ($q) {
+                $q->where('status', 'dibuka');
+            });
+
+        // Filter berdasarkan pencarian
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_barang', 'like', '%' . $search . '%')
+                    ->orWhere('lokasi', 'like', '%' . $search . '%')
+                    ->orWhere('deskripsi', 'like', '%' . $search . '%')
+                    ->orWhereHas('kategori', function ($subQ) use ($search) {
+                        $subQ->where('nama_kategori', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('penjual', function ($subQ) use ($search) {
+                        $subQ->where('nama', 'like', '%' . $search . '%');
+                    });
+            });
+        }
+
+        // Filter berdasarkan kategori
+        if ($kategori_filter) {
+            $query->where('id_kategori', $kategori_filter);
+        }
+
+        // Filter berdasarkan kondisi
+        if ($kondisi_filter && in_array($kondisi_filter, ['Baru', 'Bekas'])) {
+            $query->where('kondisi', $kondisi_filter);
+        }
+
+        // Filter berdasarkan lokasi
+        if ($lokasi_filter) {
+            $query->where('lokasi', 'like', '%' . $lokasi_filter . '%');
+        }
+
+        // Filter berdasarkan range harga
+        if ($harga_min && is_numeric($harga_min)) {
+            $query->where('harga_awal', '>=', $harga_min);
+        }
+
+        if ($harga_max && is_numeric($harga_max)) {
+            $query->where('harga_awal', '<=', $harga_max);
+        }
+
+        // Untuk pembeli gunakan pagination yang lebih besar (21 items per page)
+        $barang = $query->latest()->paginate(21);
+
+        // Process foto untuk setiap barang (ambil foto pertama saja)
+        $barang->getCollection()->transform(function ($item) {
+            if ($item->foto) {
+                $photos = explode(',', $item->foto);
+                $item->foto_utama = trim($photos[0]); // Ambil foto pertama
+            } else {
+                $item->foto_utama = 'default-product.png';
+            }
+            return $item;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Daftar barang yang tersedia untuk dilelang',
+            'data' => new BarangCollection($barang),
+            'filters' => [
+                'search' => $search,
+                'kategori' => $kategori_filter,
+                'kondisi' => $kondisi_filter,
+                'lokasi' => $lokasi_filter,
+                'harga_min' => $harga_min,
+                'harga_max' => $harga_max
+            ]
+        ], 200);
+    }
+
+    /**
+     * Get all categories for filter dropdown
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function getKategoriForFilter(Request $request)
+    {
+        $user = $request->user('api');
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized - Anda harus login terlebih dahulu'
+            ], 401);
+        }
+
+        $kategori = KategoriModel::all(['id_kategori', 'nama_kategori']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Daftar kategori',
+            'data' => $kategori
         ], 200);
     }
 }

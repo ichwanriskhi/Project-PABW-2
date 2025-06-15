@@ -57,7 +57,7 @@
         <h6 class="mb-2">Data Kategori</h6>
         <div class="d-flex align-items-center">
           <div class="me-3">
-            <a href="{{ route('kategori.create') }}" class="btn btn-dark text-xs mb-0">Tambah Kategori</a>
+            <a href="{{ auth()->user()->role === 'admin' ? route('admin.kategori.create') : route('petugas.kategori.create') }}" class="btn btn-dark text-xs mb-0">Tambah Kategori</a>
           </div>
           <div class="dataTable-top me-3">
             <div class="dataTable-dropdown">
@@ -119,8 +119,8 @@
                     </td>
                     <td class="text-center">
                       <div class="d-flex justify-content-center">
-                        <a href="{{ route('kategori.edit', $k) }}" class="btn btn-secondary text-xs mb-0 me-1">Edit</a>
-                        <form action="{{ route('kategori.destroy', $k) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus?')">
+                        <a href="{{ auth()->user()->role === 'admin' ? route('admin.kategori.edit', $k) : route('petugas.kategori.edit', $k) }}" class="btn btn-secondary text-xs mb-0 me-1">Edit</a>
+                        <form action="{{ auth()->user()->role === 'admin' ? route('admin.kategori.destroy', $k) : route('petugas.kategori.destroy', $k) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus?')">
                           @csrf
                           @method('DELETE')
                           <button type="submit" class="btn btn-danger text-xs mb-0">Hapus</button>

@@ -13,7 +13,7 @@
     <div class="mt-4">
       <div class="card py-3 px-3">
         <h6 class="mb-3">Perubahan Kategori Barang Lelang</h6>
-        <form action="{{ route('kategori.update', $kategori) }}" method="POST">
+        <form action="{{ auth()->user()->role === 'admin' ? route('admin.kategori.update', $kategori) : route('petugas.kategori.update', $kategori) }}" method="POST">
           @csrf
           @method('PUT')
           <div class="row">

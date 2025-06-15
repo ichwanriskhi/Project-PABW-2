@@ -104,15 +104,20 @@
               Filter: {{ ucfirst(request('status', 'Semua')) }}
             </button>
             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <li><a class="dropdown-item" href="{{ route('barang.index') }}">Semua</a></li>
-              <li><a class="dropdown-item" href="{{ route('barang.index', ['status' => 'disetujui']) }}">Disetujui</a></li>
-              <li><a class="dropdown-item" href="{{ route('barang.index', ['status' => 'belum disetujui']) }}">Belum Disetujui</a></li>
-              <li><a class="dropdown-item" href="{{ route('barang.index', ['status' => 'ditolak']) }}">Ditolak</a></li>
+              @php
+              $routePrefix = auth()->user()->role === 'admin' ? 'admin' :
+              (auth()->user()->role === 'petugas' ? 'petugas' : 'penjual');
+              @endphp
+
+              <li><a class="dropdown-item" href="{{ route($routePrefix.'.barang.index') }}">Semua</a></li>
+              <li><a class="dropdown-item" href="{{ route($routePrefix.'.barang.index', ['status' => 'disetujui']) }}">Disetujui</a></li>
+              <li><a class="dropdown-item" href="{{ route($routePrefix.'.barang.index', ['status' => 'belum disetujui']) }}">Belum Disetujui</a></li>
+              <li><a class="dropdown-item" href="{{ route($routePrefix.'.barang.index', ['status' => 'ditolak']) }}">Ditolak</a></li>
             </ul>
           </div>
 
           <div class="ms-md-auto d-flex align-items-center">
-            <form method="GET" action="{{ route('barang.index') }}" class="input-group input-group-outline bg-white">
+            <form method="GET" action="" class="input-group input-group-outline bg-white">
               <input type="hidden" name="status" value="{{ request('status') }}">
               <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
               <input type="text" name="search" class="form-control" placeholder="Cari data barang..." value="{{ request('search') }}">
@@ -202,7 +207,7 @@
                         @endif
                         {{-- Untuk role admin/petugas --}}
                         @elseif(in_array(Auth::user()->role, ['admin', 'petugas']))
-                        <a href="{{ route('barang.show', $item->id_barang) }}" class="btn btn-dark text-xs mb-0 me-1">Lihat Detail</a>
+                        <a href="{{ auth()->user()->role === 'admin' ? route('admin.barang.show', $item->id_barang) : route('petugas.barang.show', $item->id_barang) }}" class="btn btn-dark text-xs mb-0 me-1">Lihat Detail</a>
                         @endif
                       </div>
                     </td>

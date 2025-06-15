@@ -79,10 +79,8 @@
           <div class="mb-3">
             <label class="form-label text-sm fw-bold text-dark ms-0">Penawar Tertinggi</label>
             <input class="form-control bg-white ps-3 text-md fw-bold" type="text" 
-                   value="@if($lelang->pembeli) 
-                            {{ $lelang->pembeli->nama }}
-                          @elseif($penawaran->count() > 0)
-                            {{ $penawaran->first()->pembeli->nama }}
+                   value="@if($lelang->pembeli){{ $lelang->pembeli->nama }}
+                          @elseif($penawaran->count() > 0){{ $penawaran->first()->pembeli->nama }}
                           @else Belum ada penawar
                           @endif" disabled>
           </div>
@@ -97,7 +95,7 @@
                 </button>
               </form>
             @elseif($lelang->status == 'ditutup' && $lelang->harga_akhir > $lelang->barang->harga_awal)
-              <form action="{{ route('lelang.selesai', $lelang->id_lelang) }}" method="POST" class="mt-2">
+              <form action="{{ auth()->user()->role === 'admin' ? route('admin.lelang.selesai', $lelang->id_lelang) : route('petugas.lelang.selesai', $lelang->id_lelang) }}" method="POST" class="mt-2">
                 @csrf
                 @method('PATCH')
                 <button type="submit" class="btn btn-success w-100" onclick="return confirm('Apakah Anda yakin menyelesaikan lelang ini?')">

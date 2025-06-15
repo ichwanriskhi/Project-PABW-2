@@ -85,51 +85,62 @@ class LelangController extends Controller
      * Close the auction
      */
     public function close($id)
-    {
-        // Hanya admin dan petugas yang bisa akses
-        if (!in_array(Auth::user()->role, ['admin', 'petugas'])) {
-            return redirect()->route('lelang.index')->with('error', 'Anda tidak memiliki akses untuk menutup lelang.');
-        }
-
-        try {
-            DB::beginTransaction();
-
-            $lelang = LelangModel::findOrFail($id);
-
-            if ($lelang->status !== 'dibuka') {
-                return redirect()->route('lelang.index')->with('error', 'Lelang sudah ditutup sebelumnya.');
-            }
-
-            // Cari penawar tertinggi
-            $penawarTertinggi = PenawaranModel::where('id_lelang', $id)
-                ->orderBy('penawaran_harga', 'desc')
-                ->first();
-
-            $updateData = [
-                'status' => 'ditutup',
-                'tgl_selesai' => now(),
-            ];
-
-            // Jika ada penawar, set sebagai pembeli
-            if ($penawarTertinggi) {
-                $updateData['id_pembeli'] = $penawarTertinggi->id_pembeli; // Perbaikan dari id_user ke id_pembeli
-                $updateData['harga_akhir'] = $penawarTertinggi->penawaran_harga;
-            }
-
-            $lelang->update($updateData);
-
-            DB::commit();
-            $routeName = match (Auth::user()->role) {
-                'admin' => 'admin.lelang.index',
-                'petugas' => 'petugas.lelang.index',
-                default => 'lelang.index', // fallback
-            };
-            return redirect()->route($routeName)->with('success', 'Lelang berhasil ditutup.');
-        } catch (\Exception $e) {
-            DB::rollback();
-            return redirect()->back()->with('error', 'Gagal menutup lelang: ' . $e->getMessage());
-        }
+{
+    if (!in_array(Auth::user()->role, ['admin', 'petugas'])) {
+        return redirect()->route('lelang.index')->with('error', 'Anda tidak memiliki akses untuk menutup lelang.');
     }
+
+    try {
+        DB::beginTransaction();
+
+        $lelang = LelangModel::findOrFail($id);
+
+        if ($lelang->status !== 'dibuka') {
+            return redirect()->route('lelang.index')->with('error', 'Lelang sudah ditutup sebelumnya.');
+        }
+
+        // Cari penawar tertinggi
+        $penawarTertinggi = PenawaranModel::where('id_lelang', $id)
+            ->orderBy('penawaran_harga', 'desc')
+            ->first();
+
+        $updateData = [
+            'status' => 'ditutup',
+            'tgl_selesai' => now(),
+        ];
+
+        if ($penawarTertinggi) {
+            $updateData['id_pembeli'] = $penawarTertinggi->id_pembeli;
+            $updateData['harga_akhir'] = $penawarTertinggi->penawaran_harga;
+
+            // Update status penawar tertinggi menjadi 'win'
+            $penawarTertinggi->update([
+                'status_tawar' => 'win'
+            ]);
+
+            // Update status penawar lainnya menjadi 'lose'
+            PenawaranModel::where('id_lelang', $id)
+                ->where('id_penawaran', '!=', $penawarTertinggi->id_penawaran)
+                ->update([
+                    'status_tawar' => 'lose'
+                ]);
+        }
+
+        $lelang->update($updateData);
+
+        DB::commit();
+        
+        $routeName = match (Auth::user()->role) {
+            'admin' => 'admin.lelang.index',
+            'petugas' => 'petugas.lelang.index',
+            default => 'lelang.index',
+        };
+        return redirect()->route($routeName)->with('success', 'Lelang berhasil ditutup.');
+    } catch (\Exception $e) {
+        DB::rollback();
+        return redirect()->back()->with('error', 'Gagal menutup lelang: ' . $e->getMessage());
+    }
+}
 
     /**
      * Show auction result
