@@ -326,4 +326,10 @@ class AuthController extends Controller
         
         return view('penjual.index');
     }
+
+    public function bantuan()
+    {
+        // Redirect ke halaman bantuan
+        return view('bantuan');
+    }
 }

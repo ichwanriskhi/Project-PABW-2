@@ -17,25 +17,27 @@ class KategoriController extends Controller
     {
         // Ambil semua kategori dengan jumlah barang (untuk pagination tetap sama)
         $kategori = KategoriModel::withCount('barang')->latest()->paginate(10);
-        
+
         // Cari kategori terpopuler (yang memiliki barang terbanyak)
         $kategoriTerpopuler = KategoriModel::withCount('barang')
             ->having('barang_count', '>', 0) // hanya kategori yang memiliki barang
             ->orderBy('barang_count', 'desc')
             ->first();
-        
+
         // Cari kategori kurang diminati (yang memiliki barang paling sedikit, tapi tetap ada barangnya)
         $kategoriKurangDiminati = KategoriModel::withCount('barang')
             ->having('barang_count', '>', 0) // hanya kategori yang memiliki barang
             ->orderBy('barang_count', 'asc')
             ->first();
-        
+
         // Jika kategori terpopuler dan kurang diminati sama (hanya ada 1 kategori dengan barang)
-        if ($kategoriTerpopuler && $kategoriKurangDiminati && 
-            $kategoriTerpopuler->id_kategori == $kategoriKurangDiminati->id_kategori) {
+        if (
+            $kategoriTerpopuler && $kategoriKurangDiminati &&
+            $kategoriTerpopuler->id_kategori == $kategoriKurangDiminati->id_kategori
+        ) {
             $kategoriKurangDiminati = null; // Set null jika hanya ada 1 kategori
         }
-        
+
         return view('kategori.index', compact('kategori', 'kategoriTerpopuler', 'kategoriKurangDiminati'));
     }
 
@@ -66,7 +68,13 @@ class KategoriController extends Controller
             'nama_kategori' => $validatedData['nama_kategori'],
         ]);
 
-        return redirect()->route('kategori.index')->with('success', 'Kategori berhasil ditambahkan!');
+        $redirectRoute = match (Auth::user()->role) {
+            'admin' => 'admin.kategori.index',
+            'petugas' => 'petugas.kategori.index',
+            default => 'kategori.index'
+        };
+
+        return redirect()->route($redirectRoute)->with('success', 'Kategori berhasil ditambahkan!');
     }
 
     /**
@@ -120,7 +128,13 @@ class KategoriController extends Controller
             'nama_kategori' => $validatedData['nama_kategori'],
         ]);
 
-        return redirect()->route('kategori.index')->with('success', 'Kategori berhasil diperbarui!');
+        $redirectRoute = match (Auth::user()->role) {
+            'admin' => 'admin.kategori.index',
+            'petugas' => 'petugas.kategori.index',
+            default => 'kategori.index'
+        };
+
+        return redirect()->route($redirectRoute)->with('success', 'Kategori berhasil diperbarui!');
     }
 
     /**
@@ -141,6 +155,12 @@ class KategoriController extends Controller
 
         $kategori->delete();
 
-        return redirect()->route('kategori.index')->with('success', 'Kategori berhasil dihapus!');
+        $redirectRoute = match (Auth::user()->role) {
+            'admin' => 'admin.kategori.index',
+            'petugas' => 'petugas.kategori.index',
+            default => 'kategori.index'
+        };
+
+        return redirect()->route($redirectRoute)->with('success', 'Kategori berhasil dihapus!');
     }
 }

@@ -13,7 +13,7 @@
         <div class="mt-4">
           <div class="card py-3 px-3">
             <h6 class="mb-3">Penambahan Kategori Barang Lelang</h6>
-            <form action="{{ route('kategori.store') }}" method="POST">
+            <form action="{{ auth()->user()->role === 'admin' ? route('admin.kategori.store') : route('petugas.kategori.store') }}" method="POST">
             @csrf                              
                 <div class="row">
                   <div class="col-md-6 mb-3">

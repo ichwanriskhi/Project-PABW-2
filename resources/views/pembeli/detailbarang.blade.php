@@ -1,149 +1,290 @@
 @extends('layouts.sidebar')
 
 @section('content')
-  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg pt-3">
-    <div class="container-fluid py-2">
-      <nav aria-label="breadcrumb">
-        <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-          <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">Beranda</a></li>
-          <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">Barang</a></li>
-          <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Detail Barang</li>
-        </ol>
-      </nav>
-      <div class="mt-4">
-        <div class="card py-3 px-3">
-          <h6 class="mb-3">Pengajuan Barang Lelang</h6>
-          <form action="">
-            <div class="row">
-              <p class="fw-bold text-sm text-dark mb-0">Foto Barang</p>
-              <div id="photo-upload-container" class="col-md-12 photo-upload">
-                <input id="file-upload" type="file" name="foto[]" multiple style="display: none;" accept="image/*">
-                <img
-                  src="https://images.tokopedia.net/img/cache/900/VqbcmM/2024/7/31/248d8484-eda5-4098-8ef3-3417b9c4c51c.jpg"
-                  alt="">
-                <img
-                  src="https://images.tokopedia.net/img/cache/900/VqbcmM/2024/7/31/a31fe0b0-abce-4b0a-bd16-d2ad8ec1a63d.jpg"
-                  alt="">
-                <label for="file-upload" class="upload-label">+</label>
+<main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg px-0 pt-3">
+  <div class="container-fluid py-2">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+        <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="{{ route('pembeli.index') }}">Beranda</a></li>
+        <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="{{ route('pembeli.index') }}">Barang</a></li>
+        <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Detail Barang</li>
+      </ol>
+    </nav>
+
+    <div class="row mt-3">
+      <div class="col-md-5 gallery">
+        @if($barang->foto)
+        @php
+        $fotos = explode(',', $barang->foto);
+        $mainFoto = trim($fotos[0]);
+        @endphp
+        <img id="mainImage" alt="{{ $barang->nama_barang }}" class="img-fluid main-gall" src="{{ asset('storage/' . $mainFoto) }}">
+        <div class="d-flex mt-2 justify-content-start">
+          @foreach($fotos as $foto)
+          <div class="thumbnail" onclick="changeImage('{{ asset('storage/' . trim($foto)) }}')">
+            <img alt="Thumbnail" class="thumb" src="{{ asset('storage/' . trim($foto)) }}">
+          </div>
+          @endforeach
+        </div>
+        @else
+        <div class="text-center py-4 bg-light rounded">
+          <i class="fas fa-image fa-3x text-muted mb-3"></i>
+          <p class="text-muted">Tidak ada foto barang</p>
+        </div>
+        @endif
+      </div>
+      <div class="col-md-7">
+        <h5 class="h5 fw-bolder">{{ $barang->nama_barang }}</h5>
+        <div class="category-product d-flex mt-3">
+          <p class="text-sm me-5">{{ $barang->kategori->nama_kategori }}</p>
+          <p class="text-sm me-5">{{ $lokasiTampil }}</p>
+          <p class="text-sm">{{ ucfirst($barang->kondisi) }}</p>
+        </div>
+        <div class="row d-flex justify-content-between">
+          <div class="col-md-6">
+            <label class="form-label text-sm fw-bold text-dark ms-0" for="harga_awal">Harga Awal</label>
+            <input class="form-control bg-white ps-3 text-lg fw-bolder" id="harga_awal" type="text"
+              value="Rp {{ number_format($barang->harga_awal, 0, ',', '.') }}" disabled>
+          </div>
+          @if($barang->lelang && $barang->lelang->status == 'dibuka')
+          <div class="col-md-6">
+            <label class="form-label text-sm fw-bold text-dark ms-0" for="tawaran_tertinggi">Tawaran Tertinggi</label>
+            <input class="form-control bg-white ps-3 text-lg fw-bolder" id="tawaran_tertinggi" type="text"
+              value="Rp {{ number_format($tawaranTertinggi, 0, ',', '.') }}" disabled>
+          </div>
+          @endif
+        </div>
+
+        @if($barang->lelang && $barang->lelang->status == 'dibuka')
+        @if($sudahMenawar)
+        <div class="col-md-12 mt-3">
+          <!-- Style 1: Modern Gradient Card -->
+          <div class="demo-section">
+            <div class="bid-alert-modern">
+              <div class="d-flex align-items-start">
+                <div class="flex-grow-1">
+                  <p class="mb-2 text-xs fw-bold">Anda sudah melakukan penawaran pada barang ini. Anda tetap bisa menawar selama lelang masih dibuka.</p>
+                </div>
               </div>
             </div>
-            <div class="row">
-              <div class="col-md-4 mb-3">
-                <label for="nama" class="fw-bold text-dark">Nama Barang</label>
-                <input type="text" name="nama" class="form-control ps-3 bg-gray-100" placeholder="Masukkan nama Anda..."
-                  value="iPhone 13 128 iBox" readonly>
-              </div>
-              <div class="col-md-4">
-                <label for="harga_awal" class="fw-bold text-dark">Harga Awal</label>
-                <input type="text" id="harga_awal" name="harga_awal" class="form-control ps-3 bg-gray-100"
-                  placeholder="Masukkan nama Anda..." value="Rp. 6.000.000" readonly>
-              </div>
-              <div class="col-md-4">
-                <label for="lokasi" class="fw-bold text-dark">Lokasi</label>
-                <select name="lokasi" class="form-control bg-gray-100 ps-3" id="kondisiBarang" aria-readonly="true">
-                  <option>Pilih Lokasi</option>
-                  <option value="bandung">Bandung</option>
-                  <option selected value="jakarta">Jakarta</option>
-                  <option value="surabaya">Surabaya</option>
-                </select>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="kondisi" class="fw-bold text-dark">Kondisi Barang</label>
-                <select class="form-control bg-gray-100 ps-3" name="kondisi" id="kondisiBarang">
-                  <option>Pilih Kondisi</option>
-                  <option selected value="bekas">Bekas</option>
-                  <option value="baru">Baru</option>p
-                </select>
-              </div>
-              <div class="col-md-6">
-                <label for="kategori" class="fw-bold text-dark">Kategori</label>
-                <select class="form-control bg-gray-100 ps-3" id="kategori">
-                  <option>Pilih Kategori</option>
-                  <option selected value="gadget">Gadget</option>
-                  <option value="elektronik">Elektronik</option>
-                  <option value="furnitur">Furnitur</option>
-                </select>
-              </div>
-              <div class="col-md-12">
-                <label for="deskripsi" class="fw-bold text-dark">Deskripsi</label>
-                <textarea class="form-control ps-3 bg-gray-100" name="deskripsi" id="deskripsi" rows="10"
-                  placeholder="Deskripsi Barang">
-                    Semua bisa SIM card Indonesia
-                    INTER = imei terdaftar bea cukai all operator IMEI garansi lifetime seumur hidup
-                    DIJAMIN
-                    - Di Dalam box: Unit iPhone + USB-C to Lightning Cable
-                    Baca ulasan2 pembeli lain nya biar kalian yakin belanja disini :
-                    https://www.tokopedia.com/bigberry888/review
-                    Sekilas info toko kami :
-                    1. Positif review 99 % dr 100 % kepuasan customer
-                    2. Sudah melayani 15,000 ++ customer secara online
-                    3. Garansi Inter Resmi Apple 1 Tahun
-                    4. Brand new - Original - Segel
-                    5. After sales yg siap melayani anda selama 24 jam
-                    6. Garansi personal 7 hari,fisik 1x24 jam, kecuali matot / looping logo apple harus bawa klaim garansi dulu, karna imei di dalam hp tidak bisa dilihat *wajib video unboxing*
-                    </textarea>
-              </div>
-              <div class="text-center mt-3">
-                <a href="barang.html" class="btn btn-secondary w-10">Kembali</a>
-                <button type="submit" class="btn btn-danger w-10">Tolak</button>
-                <button type="submit" class="btn btn-dark w-10">Setujui</button>
-              </div>
+          </div>
+        </div>
+        @endif
+
+        <form id="bid-form" class="mt-3" method="POST" action="{{ route('penawaran.store') }}">
+          @csrf
+          <input type="hidden" name="id_lelang" value="{{ $barang->lelang->id_lelang }}">
+          <input type="hidden" name="min_bid" value="{{ $tawaranTertinggi > $barang->harga_awal ? $tawaranTertinggi + 10000 : $barang->harga_awal + 10000 }}">
+
+          <div class="mb-3">
+            <label class="form-label text-sm fw-bold text-dark ms-0" for="penawaran_harga">Nominal Tawaran</label>
+            <input class="form-control bg-white ps-3 text-md text-sm" id="penawaran_harga" name="penawaran_harga"
+              placeholder="Silakan masukkan tawaran anda..." type="number"
+              min="{{ $tawaranTertinggi > $barang->harga_awal ? $tawaranTertinggi + 10000 : $barang->harga_awal + 10000 }}"
+              required style="padding: 0.7rem;">
+            <small class="text-muted">Minimal penawaran: Rp {{ number_format($tawaranTertinggi > $barang->harga_awal ? $tawaranTertinggi + 10000 : $barang->harga_awal + 10000, 0, ',', '.') }}</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-sm fw-bold text-dark ms-0" for="uang_muka">Uang Muka</label>
+            <input class="form-control bg-white ps-3 text-md text-sm" id="uang_muka" name="uang_muka"
+              placeholder="Minimal 10% dari nominal tawaran yang diajukan" type="number"
+              style="padding: 0.7rem;" readonly required>
+          </div>
+          <button class="btn btn-dark w-100" type="submit">Ikuti Lelang</button>
+        </form>
+        @endif
+
+        <p class="text-md text-bold mt-3">Dari Penjual Ini:</p>
+        <div class="row">
+          <div class="col d-flex justify-content-between align-items-center">
+            <div>
+              <span class="text-sm text-bold">Barang Terlelang: </span>
+              <span class="text-sm text-bold">14</span>
             </div>
-          </form>
+            <div>
+              <i class="ms-4 fas fa-star star" style="font-size: 25px;"></i>
+              <span class="h5">4.9</span>
+              <span class="rating-scale">/5.0</span>
+            </div>
+            <span class="ms-4 text-sm text-bold">98% pembeli merasa puas</span>
+          </div>
         </div>
       </div>
     </div>
-  </main>
 
-  <!-- JS File -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../assets/js/chartjs.min.js"></script>
-  <script>
-    document.getElementById("file-upload").addEventListener("change", function (event) {
-      const files = event.target.files;
-      const container = document.getElementById("photo-upload-container");
-      const label = container.querySelector(".upload-label");
+    <div class="col-lg-12 mt-4">
+      <h6>Deskripsi Barang</h6>
+      <div class="desc card py-3 px-4">
+        <p class="text-sm">
+          {!! nl2br(e($barang->deskripsi)) !!}
+          
+        </p>
+      </div>
 
-      // Tambahkan preview untuk setiap file baru
-      Array.from(files).forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          // Buat elemen gambar
-          const img = document.createElement("img");
-          img.src = e.target.result;
+      <h6 class="mt-4">Profil Penjual</h6>
+      <div class="prof-penjual d-flex justify-content-between p-3 bg-white border-radius-md">
+        <div class="d-flex align-items-center">
+          <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            class="rounded-circle" alt="Profil Penjual" style="width: 50px; height: 50px;">
+          <p class="text-md ms-3 mt-3">{{ $barang->penjual->nama }}</p>
+        </div>
+        <div class="d-flex align-items-center">
+          <i class="fas fa-star star"></i>
+          <i class="fas fa-star star"></i>
+          <i class="fas fa-star star"></i>
+          <i class="fas fa-star star"></i>
+          <i class="fas fa-star star"></i>
+          <p class="mb-0 ms-3 bg-dark-blue text-white px-2 border-radius-xl">5.0</p>
+        </div>
+      </div>
 
-          // Pastikan tidak ada label baru dihapus
-          container.insertBefore(img, label);
-        };
-        reader.readAsDataURL(file);
-      });
-    });
+      <h6 class="mt-4">Ulasan Terbaru</h6>
+      <div class="ulasan-seller d-flex" style="overflow-x: scroll;">
+        <div class="col-lg-6 col-md-6 mb-4 me-3">
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between">
+                <div class="d-flex mt-1">
+                  <img src="https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    alt="Produk" style="object-fit: cover; width: 50px; height: 50px; border-radius: 50%;">
+                  <div class="ms-3">
+                    <p class="mb-0 text-sm">Anindita Saputri</p>
+                    <p class="text-sm text-muted">3 bulan lalu</p>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center mt-0">
+                  <i class="fas fa-star star"></i>
+                  <i class="fas fa-star star"></i>
+                  <i class="fas fa-star star"></i>
+                  <i class="fas fa-star star"></i>
+                  <i class="fas fa-star star"></i>
+                  <p class="mb-0 ms-2 text-sm">5.0</p>
+                </div>
+              </div>
+              <p class="mb-0 text-sm">Barangnya bagus mulus meskipun second like new banget cuman pengiriman rada lama
+                + sellernya sering ngegas gajelas. 4 bintang buat barangnya ga 5 bintang karna respon seller yg
+                gajelas suka marah-marah.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 col-md-6 mb-4 me-3">
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between">
+                <div class="d-flex mt-1">
+                  <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    alt="Produk" style="object-fit: cover; width: 50px; height: 50px; border-radius: 50%;">
+                  <div class="ms-3">
+                    <p class="mb-0 text-sm">Septia Anggraini</p>
+                    <p class="text-sm text-muted">1 bulan lalu</p>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center mt-0">
+                  <i class="fas fa-star star"></i>
+                  <i class="fas fa-star star"></i>
+                  <i class="fas fa-star star"></i>
+                  <i class="fas fa-star star"></i>
+                  <i class="fas fa-star star"></i>
+                  <p class="mb-0 ms-2 text-sm">5.0</p>
+                </div>
+              </div>
+              <p class="mb-0 text-sm">Bagus sih, worth it sama harganya meskipun second like new banget cuman pengiriman rada lama
+                + sellernya ramahhh pollll. 4 bintang buat barangnya ga 5 bintang karna respon seller, recommend banget deh pokonya</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h6 class="mt-4">Diskusi Barang</h6>
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="mt-2 px-4 mb-3">
+            <div class="d-flex mt-1 align-items-center">
+              <img
+                src="https://plus.unsplash.com/premium_photo-1673866484792-c5a36a6c025e?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                alt="Produk" style="object-fit: cover; width: 50px; height: 50px; border-radius: 50%;">
+              <div class="pt-2">
+                <span class="ms-3 text-sm">Johannes Simatupang</span>
+                <span><i class="fas fa-circle mx-2" style="font-size: 5px; vertical-align: middle;"></i></span>
+                <span class="text-sm text-muted">2 hari lalu</span>
+                <p class="text-sm ms-3">Pemakaian berapa lama kak kalau boleh tau?</p>
+              </div>
+            </div>
+            <hr class="border border-gray border-1 my-0">
+            <div class="d-flex mt-1 align-items-center ms-5">
+              <img
+                src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                alt="Produk" style="object-fit: cover; width: 50px; height: 50px; border-radius: 50%;">
+              <div class="pt-2">
+                <span class="ms-3 text-sm">Dewangga Saputra Pidieanto</span>
+                <span><i class="fas fa-circle mx-2" style="font-size: 5px; vertical-align: middle;"></i></span>
+                <span class="text-sm text-muted">2 hari lalu</span>
+                <p class="text-sm ms-3">Baru 3 harian kak, salah beli tipe</p>
+              </div>
+            </div>
+            <hr class="border border-gray border-1 my-0 ms-5">
+            <div class="d-flex mt-1 align-items-center ms-5">
+              <img
+                src="https://plus.unsplash.com/premium_photo-1673866484792-c5a36a6c025e?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                alt="Produk" style="object-fit: cover; width: 50px; height: 50px; border-radius: 50%;">
+              <div class="pt-2">
+                <span class="ms-3 text-sm">Johannes Simatupang</span>
+                <span><i class="fas fa-circle mx-2" style="font-size: 5px; vertical-align: middle;"></i></span>
+                <span class="text-sm text-muted">2 hari lalu</span>
+                <p class="text-sm ms-3">Siap kak, ikut nawar juga deh sapa tau rejeki</p>
+              </div>
+            </div>
+            <hr class="border border-gray border-1 my-0 ms-5">
+            <div class="d-flex mt-1 align-items-center">
+              <img
+                src="https://images.unsplash.com/photo-1506863530036-1efeddceb993?q=80&w=1944&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                alt="Produk" style="object-fit: cover; width: 50px; height: 50px; border-radius: 50%;">
+              <div class="pt-2">
+                <span class="ms-3 text-sm">Andrea Hiragana</span>
+                <span><i class="fas fa-circle mx-2" style="font-size: 5px; vertical-align: middle;"></i></span>
+                <span class="text-sm text-muted">1 hari lalu</span>
+                <p class="text-sm ms-3">Kak ini mulus beneran kan?</p>
+              </div>
+            </div>
+            <form action="" class="d-flex align-items-center mt-2">
+              <input type="text" class="form-control bg-gray-100 ps-3" placeholder="Ajukan pertanyaan">
+              <button class="btn btn-transparent mb-0"><i class="fas fa-paper-plane"
+                  style="color: #4154f1;"></i></button>
+            </form>
+          </div>
+        </div>
+      </div>
 
-  </script>
-  <script>
-    const hargaAwalInput = document.getElementById('harga_awal');
+      <div class="text-center mt-3">
+        <a href="{{ route('pembeli.index') }}" class="btn btn-secondary w-10">Kembali</a>
+      </div>
+    </div>
 
-    hargaAwalInput.addEventListener('input', function () {
-      // Ambil nilai input dan hilangkan semua koma
-      let value = this.value.replace(/,/g, '').replace(/[^0-9]/g, '');
+    <footer class="footer py-4">
+      <div class="row align-items-center">
+        <div class="col-lg-12 mb-lg-0 mb-4">
+          <div class="copyright text-center text-sm text-muted text-lg">
+            &copy2024 ElangKuy, All Rights Reserved.
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+</main>
 
-      // Format nilai dengan menambahkan koma sebagai pemisah ribuan
-      if (value) {
-        this.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-      } else {
-        this.value = ''; // Kosongkan input jika semua karakter dihapus
-      }
-    });
+<!-- JS File -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function changeImage(imageUrl) {
+    document.getElementById('mainImage').src = imageUrl;
+  }
 
-    hargaAwalInput.addEventListener('blur', function () {
-      // Pastikan input tetap terformat saat kehilangan fokus
-      let value = this.value.replace(/,/g, '');
-      if (value) {
-        this.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-      }
-    });
-  </script>
-</body>
-
-</html>
+  // Calculate 10% down payment when bid amount changes
+  document.getElementById('penawaran_harga').addEventListener('input', function() {
+    const bidAmount = parseFloat(this.value);
+    if (!isNaN(bidAmount)) {
+      const downPayment = bidAmount * 0.1;
+      document.getElementById('uang_muka').value = downPayment.toFixed(0);
+    }
+  });
+</script>
 @endsection

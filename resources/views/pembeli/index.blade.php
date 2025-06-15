@@ -68,7 +68,7 @@
             <h5 class="card-title">{{ $item->nama_barang }}</h5>
             <p class="card-text">{{ $item->kondisi }}</p>
             <!-- Mengarahkan ke route pembeli.detailbarang -->
-            <a href="" class="btn btn-primary">
+            <a href="{{ route('pembeli.barang.detail', $item->id_barang) }}" class="btn btn-primary">
               Rp. {{ number_format($item->harga_awal, 0, ',', '.') }}
             </a>
           </div>

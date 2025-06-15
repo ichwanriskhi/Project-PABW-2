@@ -18,8 +18,35 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
     <!-- CSS -->
     <link rel="stylesheet" href="/assets/css/style.css">
+    
+    <style>
+        .password-toggle {
+            position: relative;
+        }
+        
+        .password-toggle-icon {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+            z-index: 10;
+        }
+        
+        .password-toggle-icon:hover {
+            color: #495057;
+        }
+        
+        .form-control {
+            padding-right: 45px;
+        }
+    </style>
 </head>
 
 <body>
@@ -61,7 +88,10 @@
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Kata Sandi</label>
-                                <input type="password" class="form-control" name="password" id="password" placeholder="Masukkan kata sandi ...">
+                                <div class="password-toggle">
+                                    <input type="password" class="form-control" name="password" id="password" placeholder="Masukkan kata sandi ...">
+                                    <i class="bi bi-eye-slash password-toggle-icon" id="togglePassword"></i>
+                                </div>
                             </div>
                             <div class="d-flex justify-content-end">
                                 <a href="#" class="text-decoration-none">Lupa kata sandi?</a>
@@ -76,13 +106,34 @@
         </div>
     </section>
 
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Carousel script
             var myCarousel = document.querySelector('#carouselExampleSlidesOnly');
-            var carousel = new bootstrap.Carousel(myCarousel, {
-                interval: 3000,
-                ride: 'carousel'
+            if (myCarousel) {
+                var carousel = new bootstrap.Carousel(myCarousel, {
+                    interval: 3000,
+                    ride: 'carousel'
+                });
+            }
+
+            // Password toggle functionality
+            const togglePassword = document.querySelector('#togglePassword');
+            const password = document.querySelector('#password');
+
+            togglePassword.addEventListener('click', function() {
+                // Toggle the type attribute
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                
+                // Toggle the eye icon
+                if (type === 'password') {
+                    this.classList.remove('bi-eye');
+                    this.classList.add('bi-eye-slash');
+                } else {
+                    this.classList.remove('bi-eye-slash');
+                    this.classList.add('bi-eye');
+                }
             });
         });
     </script>

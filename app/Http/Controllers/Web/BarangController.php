@@ -459,7 +459,14 @@ class BarangController extends Controller
         $user = Auth::user();
 
         if (!in_array($user->role, ['admin', 'petugas'])) {
-            return redirect()->route('barang.index')->withErrors(['error' => 'Hanya admin dan petugas yang dapat mengubah status barang.']);
+            $redirectRoute = match ($user->role) {
+                'penjual' => 'penjual.barang.index',
+                'pembeli' => 'pembeli.barang.index',
+                default => 'landing' // fallback route
+            };
+
+            return redirect()->route($redirectRoute)
+                ->withErrors(['error' => 'Hanya admin dan petugas yang dapat mengubah status barang.']);
         }
 
         $barang = BarangModel::find($id);
@@ -518,12 +525,27 @@ class BarangController extends Controller
                 $message .= ' dan lelang telah dibuat otomatis';
             }
 
-            return redirect()->route('barang.index')->with('success', $message);
+            $redirectRoute = match ($user->role) {
+                'admin' => 'admin.barang.index',
+                'petugas' => 'petugas.barang.index',
+                default => 'landing' // fallback route
+            };
+
+            return redirect()->route($redirectRoute)->with('success', $message);
         } catch (\Exception $e) {
             // Rollback transaction jika ada error
             DB::rollback();
 
-            return redirect()->route('barang.index')->withErrors(['error' => 'Terjadi kesalahan saat memperbarui status barang.']);
+            $redirectRoute = match ($user->role) {
+                'admin' => 'admin.barang.index',
+                'petugas' => 'petugas.barang.index',
+                'penjual' => 'penjual.barang.index',
+                'pembeli' => 'pembeli.barang.index',
+                default => 'landing' // fallback route
+            };
+
+            return redirect()->route($redirectRoute)
+                ->withErrors(['error' => 'Terjadi kesalahan saat memperbarui status barang.']);
         }
     }
 
@@ -536,7 +558,14 @@ class BarangController extends Controller
         $user = Auth::user();
 
         if (!in_array($user->role, ['admin', 'petugas'])) {
-            return redirect()->route('barang.index')->withErrors(['error' => 'Hanya admin dan petugas yang dapat mengubah status barang.']);
+            $redirectRoute = match ($user->role) {
+                'penjual' => 'penjual.barang.index',
+                'pembeli' => 'pembeli.barang.index',
+                default => 'landing' // fallback route
+            };
+
+            return redirect()->route($redirectRoute)
+                ->withErrors(['error' => 'Hanya admin dan petugas yang dapat mengubah status barang.']);
         }
 
         $barang = BarangModel::with(['kategori', 'penjual'])->find($id);
@@ -549,49 +578,48 @@ class BarangController extends Controller
     }
 
     public function showDetailForPembeli($id)
-{
-    $user = Auth::user();
-    $barang = BarangModel::with(['kategori', 'penjual', 'lelang'])->find($id);
+    {
+        $user = Auth::user();
+        $barang = BarangModel::with(['kategori', 'penjual', 'lelang'])->find($id);
 
-    if (!$barang) {
-        return redirect()->route('pembeli.index')->withErrors(['error' => 'Barang tidak ditemukan.']);
+        if (!$barang) {
+            return redirect()->route('pembeli.index')->withErrors(['error' => 'Barang tidak ditemukan.']);
+        }
+
+        // Cek apakah barang disetujui dan lelang dibuka
+        if ($barang->status !== 'disetujui' || !$barang->lelang || $barang->lelang->status !== 'dibuka') {
+            return redirect()->route('pembeli.index')->withErrors(['error' => 'Barang tidak tersedia untuk dilelang.']);
+        }
+
+        // Ambil tawaran tertinggi - MODIFIED QUERY
+        $tawaranTertinggi = DB::table('penawaran')
+            ->where('id_lelang', $barang->lelang->id_lelang)
+            ->max('penawaran_harga');
+
+        // Cek apakah user sudah pernah menawar - MODIFIED QUERY
+        $sudahMenawar = DB::table('penawaran')
+            ->where('id_lelang', $barang->lelang->id_lelang)
+            ->where('id_pembeli', $user->id)
+            ->exists();
+
+        // Rest of your method remains the same...
+        $lokasiTampil = match (strtolower(trim($barang->lokasi))) {
+            'bandung' => 'Telkom University Bandung',
+            'surabaya' => 'Telkom University Surabaya',
+            'jakarta' => 'Telkom University Jakarta',
+            default => $barang->lokasi,
+        };
+
+        $fotoArray = $barang->foto ? explode(',', $barang->foto) : [];
+        $mainImage = count($fotoArray) > 0 ? trim($fotoArray[0]) : 'default-product.png';
+
+        return view('pembeli.detailbarang', compact(
+            'barang',
+            'tawaranTertinggi',
+            'sudahMenawar',
+            'lokasiTampil',
+            'fotoArray',
+            'mainImage'
+        ));
     }
-
-    // Cek apakah barang disetujui dan lelang dibuka
-    if ($barang->status !== 'disetujui' || !$barang->lelang || $barang->lelang->status !== 'dibuka') {
-        return redirect()->route('pembeli.index')->withErrors(['error' => 'Barang tidak tersedia untuk dilelang.']);
-    }
-
-    // Ambil tawaran tertinggi
-    $tawaranTertinggi = DB::table('penawaran')
-        ->where('id_barang', $id)
-        ->max('penawaran_harga');
-
-    // Cek apakah user sudah pernah menawar
-    $sudahMenawar = DB::table('penawaran')
-        ->where('id_barang', $id)
-        ->where('id_pembeli', $user->id)
-        ->exists();
-
-    // Format lokasi
-    $lokasiTampil = match (strtolower(trim($barang->lokasi))) {
-        'bandung' => 'Telkom University Bandung',
-        'surabaya' => 'Telkom University Surabaya',
-        'jakarta' => 'Telkom University Jakarta',
-        default => $barang->lokasi,
-    };
-
-    // Ambil foto barang
-    $fotoArray = $barang->foto ? explode(',', $barang->foto) : [];
-    $mainImage = count($fotoArray) > 0 ? trim($fotoArray[0]) : 'default-product.png';
-
-    return view('pembeli.detailbarang', compact(
-        'barang',
-        'tawaranTertinggi',
-        'sudahMenawar',
-        'lokasiTampil',
-        'fotoArray',
-        'mainImage'
-    ));
-}
 }

@@ -50,26 +50,26 @@ Route::middleware(['auth:web'])->group(function () {
         Route::delete('/admin/kategori/{id}', [KategoriController::class, 'destroy'])->name('kategori.destroy');
 
         // Barang routes untuk Admin
-        Route::get('/admin/barang', [BarangController::class, 'index'])->name('barang.index');
-        Route::get('/admin/barang/create', [BarangController::class, 'create'])->name('barang.create');
+        Route::get('/admin/barang', [BarangController::class, 'index'])->name('admin.barang.index');
+        Route::get('/admin/barang/create', [BarangController::class, 'create'])->name('admin.barang.create');
         Route::post('/admin/barang', [BarangController::class, 'store'])->name('barang.store');
-        Route::get('/admin/barang/{id}', [BarangController::class, 'show'])->name('barang.show');
-        Route::get('/admin/barang/{id}/edit', [BarangController::class, 'edit'])->name('barang.edit');
-        Route::put('/admin/barang/{id}', [BarangController::class, 'update'])->name('barang.update');
+        Route::get('/admin/barang/{id}', [BarangController::class, 'show'])->name('admin.barang.show');
+        Route::get('/admin/barang/{id}/edit', [BarangController::class, 'edit'])->name('admin.barang.edit');
+        Route::put('/admin/barang/{id}', [BarangController::class, 'update'])->name('admin.barang.update');
         Route::delete('/admin/barang/{id}', [BarangController::class, 'destroy'])->name('barang.destroy');
 
         // Routes khusus admin untuk manajemen status barang
         Route::get('/admin/barang/status/{status}', [BarangController::class, 'getByStatus'])->name('barang.status');
         Route::get('/admin/barang/{id}/edit-status', [BarangController::class, 'editStatus'])->name('barang.edit.status');
-        Route::patch('/admin/barang/{id}/status', [BarangController::class, 'updateStatus'])->name('barang.update.status');
+        Route::patch('/admin/barang/{id}/status', [BarangController::class, 'updateStatus'])->name('admin.update.status');
         Route::get('/admin/barang/kategori/{id_kategori}', [BarangController::class, 'getByKategori'])->name('barang.kategori');
 
         // Tambahkan route admin lainnya di sini
         // tampilkan lelang index
         Route::get('/admin/lelang', [LelangController::class, 'index'])->name('admin.lelang.index');
         Route::get('/admin/lelang/{id}', [LelangController::class, 'show'])->name('admin.lelang.show');
-        Route::patch('/admin/lelang/{id}/tutup', [LelangController::class, 'tutup'])->name('admin.lelang.tutup');
-        Route::patch('/admin/lelang/{id}/selesai', [LelangController::class, 'selesai'])->name('admin.lelang.selesai');
+        Route::patch('/admin/lelang/{id}/tutup', [LelangController::class, 'close'])->name('admin.lelang.tutup');
+        Route::patch('/admin/lelang/{id}/selesai', [LelangController::class, 'complete'])->name('admin.lelang.selesai');
 
         Route::get('/admin/petugas', [PenggunaController::class, 'index'])->name('admin.petugas.index');
         Route::post('/admin/petugas', [PenggunaController::class, 'store'])->name('admin.petugas.store');
@@ -107,14 +107,14 @@ Route::middleware(['auth:web'])->group(function () {
         // Routes khusus petugas untuk manajemen status barang
         Route::get('/petugas/barang/status/{status}', [BarangController::class, 'getByStatus'])->name('petugas.barang.status');
         Route::get('/petugas/barang/{id}/edit-status', [BarangController::class, 'editStatus'])->name('petugas.barang.edit.status');
-        Route::patch('/petugas/barang/{id}/status', [BarangController::class, 'updateStatus'])->name('petugas.barang.update.status');
+        Route::patch('/petugas/barang/{id}/status', [BarangController::class, 'updateStatus'])->name('petugas.update.status');
         Route::get('/petugas/barang/kategori/{id_kategori}', [BarangController::class, 'getByKategori'])->name('petugas.barang.kategori');
 
         // Tambahkan route petugas lainnya di sini
         Route::get('/petugas/lelang', [LelangController::class, 'index'])->name('petugas.lelang.index');
         Route::get('/petugas/lelang/{id}', [LelangController::class, 'show'])->name('petugas.lelang.show');
-        Route::patch('/petugas/lelang/{id}/tutup', [LelangController::class, 'tutup'])->name('petugas.lelang.tutup');
-        Route::patch('/petugas/lelang/{id}/selesai', [LelangController::class, 'selesai'])->name('petugas.lelang.selesai');
+        Route::patch('/petugas/lelang/{id}/tutup', [LelangController::class, 'close'])->name('petugas.lelang.tutup');
+        Route::patch('/petugas/lelang/{id}/selesai', [LelangController::class, 'complete'])->name('petugas.lelang.selesai');
     });
 
     // Penjual routes
@@ -131,6 +131,7 @@ Route::middleware(['auth:web'])->group(function () {
 
         // Tambahkan route penjual lainnya di sini
         Route::get('/penjual/lelang/{id}', [LelangController::class, 'show'])->name('penjual.lelang.show');
+        Route::get('penjual/bantuan', [AuthController::class, 'bantuan'])->name('penjual.bantuan');
     });
 
     // Pembeli routes
@@ -139,10 +140,13 @@ Route::middleware(['auth:web'])->group(function () {
 
         // Barang routes untuk Pembeli (hanya melihat barang yang disetujui)
         Route::get('/pembeli/barang', [BarangController::class, 'index'])->name('pembeli.barang.index');
-        Route::get('/pembeli/barang/{id}', [BarangController::class, 'show'])->name('pembeli.barang.show');
-        // Route::get('/pembeli/barang/kategori/{id_kategori}', [BarangController::class, 'getByKategori'])->name('pembeli.barang.kategori');
-        // Route::post('/pembeli/penawaran', [PenawaranController::class, 'store'])->name('penawaran.store');
-        // Route::get('/pembeli/lelang/{id_lelang}', [PenawaranController::class, 'history'])->name('pembeli.detailbarang');
+        Route::get('/pembeli/barang/{id}', [BarangController::class, 'showDetailForPembeli'])->name('pembeli.barang.detail');
+        Route::post('/pembeli/penawaran', [PenawaranController::class, 'store'])->name('penawaran.store');
+        Route::get('/pembeli/penawaran/{id}', [PenawaranController::class, 'show'])->name('penawaran.show');
+        Route::get('/pembeli/aktivitas', [PenawaranController::class, 'history'])->name('pembeli.aktivitas');
+        Route::put('/pembeli/penawaran/{id}/payment', [PenawaranController::class, 'updatePayment'])->name('penawaran.updatePayment');
+        Route::get('/aktivitas', [PenawaranController::class, 'history'])->name('aktivitas');
+        Route::get('/bantuan', [AuthController::class, 'bantuan'])->name('pembeli.bantuan');
 
         // Tambahkan route pembeli lainnya di sini
     });
